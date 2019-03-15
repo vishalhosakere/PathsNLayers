@@ -20,7 +20,8 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
     var touchStart = CGPoint.zero
     let borderlayer = CAShapeLayer()
     let textView = UITextView()
-    let textLabel = UITextLabel()
+    let textLabel = UITextField()
+    var circles = [CircleView]()
     
 //    let mytapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(myTapAction))
     
@@ -28,13 +29,12 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
     var path: UIBezierPath!
     
     convenience init(frame: CGRect, inshape: String) {
-        print("Custom init")
         self.init(frame: frame)
         self.shape = inshape
     }
     
     override init(frame: CGRect) {
-        print("Override init")
+        
         self.shape = "Triangle"
         super.init(frame: frame)
         let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(myTapAction))
@@ -57,8 +57,10 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         animation.duration = 1
         animation.repeatCount = .infinity
         borderlayer.add(animation, forKey: "line")
-
+        
         createTextView()
+//        createCircles()
+        
         //createTextLayer()
 
 
@@ -93,7 +95,14 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         path.close()
     }
     
-    	
+    func createDiamond() {
+        path = UIBezierPath()
+        path.move(to: CGPoint(x: self.frame.width/2, y: 10))
+        path.addLine(to: CGPoint(x: 10 , y: self.frame.height/2))
+        path.addLine(to: CGPoint(x: self.frame.width/2 , y: self.frame.height - 10))
+        path.addLine(to: CGPoint(x: self.frame.width - 10, y: self.frame.height/2))
+        path.close()
+    }
    
     func createTriangle() {
 //        mytapGestureRecognizer.numberOfTapsRequired = 1
@@ -104,10 +113,45 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         path.addLine(to: CGPoint(x: 10, y: self.frame.size.height - 10))
         path.addLine(to: CGPoint(x: self.frame.size.width - 10 , y: self.frame.size.height - 10))
         path.close()
-        
-        
     }
 
+    
+    func createRoundedRectangle() {
+        path = UIBezierPath()
+        path.move(to: CGPoint(x: 40, y: 10))
+        path.addLine(to: CGPoint(x: self.frame.width - 40, y: 10))
+        path.addCurve(to: CGPoint(x: self.frame.width - 40, y: self.frame.height - 10), controlPoint1: CGPoint(x: self.frame.width, y: (self.frame.height)/3), controlPoint2: CGPoint(x: self.frame.width, y: 2*(self.frame.height)/3))
+        path.addLine(to: CGPoint(x: 40, y: self.frame.height - 10))
+        path.addCurve(to: CGPoint(x: 40, y: 10), controlPoint1: CGPoint(x: 0, y: 2*(self.frame.height)/3), controlPoint2: CGPoint(x: 0, y: 	(self.frame.height)/3))
+        path.close()
+    }
+    
+    func createDatabase() {
+        path = UIBezierPath()
+        path.move(to: CGPoint(x: 10, y: 20))
+        path.addCurve(to: CGPoint(x: self.frame.width - 10, y: 20), controlPoint1: CGPoint(x: self.frame.width/3, y: 0), controlPoint2: CGPoint(x: 2*self.frame.width/3, y: 0))
+        path.addCurve(to: CGPoint(x: 10, y: 20), controlPoint1: CGPoint(x: self.frame.width*2/3, y: 40), controlPoint2: CGPoint(x: self.frame.width/3, y: 40))
+        path.addLine(to: CGPoint(x: 10, y: self.frame.height - 20))
+        path.addCurve(to: CGPoint(x: self.frame.width - 10, y: self.frame.height - 20), controlPoint1: CGPoint(x: self.frame.width/3, y: self.frame.height), controlPoint2: CGPoint(x: self.frame.width*2/3, y: self.frame.height))
+        path.addLine(to: CGPoint(x: self.frame.width - 10, y: 20))
+        
+    }
+    
+    func createHarddisk(){
+        path = UIBezierPath()
+        //path.move(to: CGPoint(x: 20, y: 10))
+        path.move(to: CGPoint(x: self.frame.width - 20, y: 10))
+        path.addCurve(to: CGPoint(x: self.frame.width - 20, y: self.frame.height - 10), controlPoint1: CGPoint(x: self.frame.width, y: self.frame.height/3), controlPoint2: CGPoint(x: self.frame.width, y: self.frame.height*2/3))
+        path.addCurve(to: CGPoint(x: self.frame.width - 20, y: 10), controlPoint1: CGPoint(x: self.frame.width - 40, y: self.frame.height*2/3), controlPoint2: CGPoint(x: self.frame.width - 40, y: self.frame.height/3))
+        path.addLine(to: CGPoint(x: 20, y: 10))
+        path.addCurve(to: CGPoint(x: 20, y: self.frame.height - 10), controlPoint1: CGPoint(x: 0, y: self.frame.height/3), controlPoint2: CGPoint(x: 0, y: self.frame.height*2/3))
+        path.addLine(to: CGPoint(x: self.frame.width - 20, y: self.frame.height - 10))
+    }
+    
+    
+    
+    
+    
     func createTextView() {
         
         textView.text = "Hello"
@@ -136,8 +180,8 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         textLabel.center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
 //        textLabel = 2
         textLabel.sizeToFit()
-        textLabel.lines
-        textLabel.textContainer.exclusionPaths = [path]
+//        textLabel.lines
+//        textLabel.textContainer.exclusionPaths = [path]
         self.addSubview(textLabel)	
     }
     
@@ -155,6 +199,38 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         self.layer.addSublayer(textLayer)
     }
     
+    
+    func createCircles(){
+        let cir1 = CircleView(frame: CGRect(x: self.center.x - (self.bounds.size.width / 2) - 50 , y: self.center.y - 25, width: 50, height: 50))
+        let cir2 = CircleView(frame: CGRect(x: self.center.x - 25 , y: self.center.y - (self.bounds.size.height / 2) - 50, width: 50, height: 50))
+        let cir3 = CircleView(frame: CGRect(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y - 25, width: 50, height: 50))
+        let cir4 = CircleView(frame: CGRect(x: self.center.x - 25 , y: self.center.y + (self.bounds.size.height / 2) , width: 50, height: 50))
+        if self.shape == "Triangle" {
+            print("its a triangle!!!")
+            cir1.mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 4) , y: self.center.y) //left
+            cir2.mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2)) //top
+            cir3.mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 4) , y: self.center.y) //right
+            cir4.mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2)) //bottom
+        }else{
+            cir1.mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
+            cir2.mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+            cir3.mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
+            cir4.mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+        }
+        cir1.backgroundColor = .clear
+        cir2.backgroundColor = .clear
+        cir3.backgroundColor = .clear
+        cir4.backgroundColor = .clear
+//        circles.append(cir1,cir2,cir3,cir4)
+        circles.append(contentsOf: [cir1,cir2,cir3,cir4])
+        superview?.addSubview(cir1)
+        superview?.addSubview(cir2)
+        superview?.addSubview(cir3)
+        superview?.addSubview(cir4)
+
+    }
+    
+    
     // Only override draw() if you perform custom drawing.
     // An empty implementation adversely affects performance during animation.
     override func draw(_ rect: CGRect) {
@@ -162,14 +238,24 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         // Drawing code
         if self.shape == "Triangle" {
             self.createTriangle()
-        }else{
+        }else if self.shape == "Diamond"{
+            self.createDiamond()
+        }else if self.shape == "Rounded Rectangle"{
+            self.createRoundedRectangle()
+        }else if self.shape == "Rectangle"{
             self.createRectangle()
+        }else if self.shape == "Database"{
+            self.createDatabase()
+        }else if self.shape == "Harddisk"{
+            self.createHarddisk()
         }
+        
+        
         UIColor.clear.setFill()
         path.fill()
 
         // Specify a border (stroke) color.
-        UIColor.purple.setStroke()
+        UIColor.black.setStroke()
         path.stroke()
         path.lineWidth = 4.0
     }
@@ -209,11 +295,49 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         //print("\(isResizingLL) \(isResizingLR) \(isResizingUL) \(isResizingUR)")
     }
     
+    
+    
+    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if self.borderlayer.isHidden{
             self.center = touches.first!.location(in: self.superview)
             self.subviews[0].center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
             self.borderlayer.path =  UIBezierPath(roundedRect: self.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 20, height: 20)).cgPath
+            circles[0].center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - 25 + 25)
+            circles[1].center = CGPoint(x: self.center.x - 25 + 25, y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
+            circles[2].center = CGPoint(x: self.center.x + (self.bounds.size.width / 2) + 25 , y: self.center.y - 25 + 25)
+            circles[3].center = CGPoint(x: self.center.x - 25 + 25 , y: self.center.y + (self.bounds.size.height / 2) + 25)
+            if self.shape == "Triangle"{
+                circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 4) , y: self.center.y)
+                circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+                circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 4) , y: self.center.y)
+                circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+            }
+            else{
+                circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
+                circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+                circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
+                circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+            }
+            for circle in circles{
+                if let outGoingCircle = circle.outGoingCircle, let line = circle.outGoingLine, let path = circle.outGoingLine?.path {
+//                    let newPath = UIBezierPath(cgPath: path)
+//                    newPath.removeAllPoints()
+//                    newPath.move(to: circle.mainPoint!)
+//                    newPath.addLine(to: outGoingCircle.mainPoint!)
+//                    line.path = newPath.cgPath
+                    line.path = circle.getPath(circle: circle.outGoingCircle!)
+                }
+                
+                if let inComingCircle = circle.inComingCircle, let line = circle.inComingLine, let path = circle.inComingLine?.path {
+//                    let newPath = UIBezierPath(cgPath: path)
+//                    newPath.removeAllPoints()
+//                    newPath.move(to: inComingCircle.mainPoint!)
+//                    newPath.addLine(to: circle.mainPoint!)
+//                    line.path = newPath.cgPath
+                    line.path = circle.inComingCircle!.getPath(circle: circle)
+                }
+            }
             return
         }
         let touchPoint =  touches.first?.location(in: self)
@@ -245,6 +369,42 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
         
         self.subviews[0].center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
         self.borderlayer.path =  UIBezierPath(roundedRect: self.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 20, height: 20)).cgPath
+        circles[0].center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - 25 + 25)
+        circles[1].center = CGPoint(x: self.center.x - 25 + 25, y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
+        circles[2].center = CGPoint(x: self.center.x + (self.bounds.size.width / 2) + 25 , y: self.center.y - 25 + 25)
+        circles[3].center = CGPoint(x: self.center.x - 25 + 25 , y: self.center.y + (self.bounds.size.height / 2) + 25)
+        if self.shape == "Triangle"{
+            circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 4) , y: self.center.y)
+            circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+            circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 4) , y: self.center.y)
+            circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+        }
+        else{
+            circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
+            circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+            circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
+            circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+        }
+        for circle in circles{
+            if let outGoingCircle = circle.outGoingCircle, let line = circle.outGoingLine, let path = circle.outGoingLine?.path {
+//                let newPath = UIBezierPath(cgPath: path)
+//                newPath.removeAllPoints()
+//                newPath.move(to: circle.mainPoint!)
+//                newPath.addLine(to: outGoingCircle.mainPoint!)
+//                line.path = newPath.cgPath
+                line.path = circle.getPath(circle: circle.outGoingCircle!)
+                
+            }
+            
+            if let inComingCircle = circle.inComingCircle, let line = circle.inComingLine, let path = circle.inComingLine?.path {
+//                let newPath = UIBezierPath(cgPath: path)
+//                newPath.removeAllPoints()
+//                newPath.move(to: inComingCircle.mainPoint!)
+//                newPath.addLine(to: circle.mainPoint!)
+//                line.path = newPath.cgPath
+                line.path = circle.inComingCircle!.getPath(circle: circle)
+            }
+        }
         
     }
     
@@ -259,22 +419,27 @@ class DemoView: UIView , UIGestureRecognizerDelegate {
     func disable_resize() {
         self.borderlayer.isHidden = true
         self.textView.isUserInteractionEnabled = false
+        for circle in circles{
+            circle.isHidden = true
+        }
     }
     
     func enable_resize() {
         self.borderlayer.isHidden = false
         self.textView.isUserInteractionEnabled = true
+        for circle in circles{
+            if !circle.hasConnection{
+                circle.isHidden = false
+            }
+        }
     }
     @objc func myTapAction(_ sender: UITapGestureRecognizer) {
+
         if self.borderlayer.isHidden {
-            //self.backgroundColor = UIColor.clear
-            self.borderlayer.isHidden = false
-            self.textView.isUserInteractionEnabled = true
+            enable_resize()
         }
         else{
-            //self.backgroundColor = UIColor.darkGray
-            self.borderlayer.isHidden = true
-            self.textView.isUserInteractionEnabled = false
+            disable_resize()
         }
         
     }
