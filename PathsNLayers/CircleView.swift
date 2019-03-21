@@ -16,6 +16,28 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
     var outGoingCircle : CircleView?
     var mainPoint : CGPoint?
     var hasConnection : Bool
+    var myView : processView?
+    var isDelete : Bool?
+    let myLayer = CALayer()
+    var side: Int?
+    static var uniqueID = 0
+
+
+    
+    convenience init(frame: CGRect, isDelete: Bool) {
+        self.init(frame: frame)
+        self.isDelete = isDelete
+        if self.isDelete!{
+            let myImage = UIImage(named: "delete")?.cgImage
+            myLayer.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+            myLayer.contents = myImage
+        }
+    }
+    
+    convenience init(frame: CGRect, isSide: Int) {
+        self.init(frame: frame)
+        self.side = isSide
+    }
     
     override init(frame: CGRect) {
         hasConnection = false
@@ -25,7 +47,6 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
 //        plus.frame = self.frame
 //        plus.contentMode = .sca
 //        self.addSubview(plus)
-        let myLayer = CALayer()
         let myImage = UIImage(named: "plus")?.cgImage
         myLayer.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         myLayer.contents = myImage
@@ -60,21 +81,34 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
     
     
     func lineTo(circle: CircleView) -> CAShapeLayer {
-        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 1, headWidth: 20, headLength: 20)
+//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
+        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
         let shapeLayer = CAShapeLayer()
         shapeLayer.path = arrow.cgPath
-        
         circle.inComingLine = shapeLayer
         outGoingLine = shapeLayer
         outGoingCircle = circle
         circle.inComingCircle = self
-        
+        self.hasConnection = true
+        self.isHidden = true
+        circle.hasConnection = true
+        circle.isHidden = true
         return shapeLayer
     }
     
+    
+    
     func getPath(circle: CircleView) -> CGPath {
-        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 1, headWidth: 20, headLength: 20)
+//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
+        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
         return arrow.cgPath
+    }
+    
+    
+    
+    static func getUniqueID() -> Int{
+        uniqueID += 1
+        return uniqueID
     }
 }
 

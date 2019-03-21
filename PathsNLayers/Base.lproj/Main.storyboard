@@ -17,41 +17,9 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TWb-uI-BL7">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6ob-ls-ops">
-                                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    </view>
-                                </subviews>
-                                <constraints>
-                                    <constraint firstItem="6ob-ls-ops" firstAttribute="centerY" secondItem="TWb-uI-BL7" secondAttribute="centerY" id="8Go-bF-oNh"/>
-                                    <constraint firstAttribute="bottom" secondItem="6ob-ls-ops" secondAttribute="bottom" id="8u8-cS-r9P"/>
-                                    <constraint firstAttribute="trailing" secondItem="6ob-ls-ops" secondAttribute="trailing" id="FuI-Jo-DpP"/>
-                                    <constraint firstItem="6ob-ls-ops" firstAttribute="leading" secondItem="TWb-uI-BL7" secondAttribute="leading" id="TZo-Q2-M4F"/>
-                                    <constraint firstItem="6ob-ls-ops" firstAttribute="top" secondItem="TWb-uI-BL7" secondAttribute="top" id="ffd-xD-20U"/>
-                                    <constraint firstItem="6ob-ls-ops" firstAttribute="centerX" secondItem="TWb-uI-BL7" secondAttribute="centerX" id="pyZ-rZ-TD4"/>
-                                </constraints>
-                                <connections>
-                                    <outlet property="delegate" destination="BYZ-38-t0r" id="feo-nA-VGt"/>
-                                </connections>
-                            </scrollView>
-                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="TWb-uI-BL7" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="1oo-qU-HHf"/>
-                            <constraint firstItem="TWb-uI-BL7" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="CKl-bC-Qm1"/>
-                            <constraint firstItem="TWb-uI-BL7" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="EID-4k-GbZ"/>
-                            <constraint firstItem="TWb-uI-BL7" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="cH8-aT-UfT"/>
-                        </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
-                    <connections>
-                        <outlet property="scrollView" destination="TWb-uI-BL7" id="kLk-h6-nFh"/>
-                        <outlet property="subView" destination="6ob-ls-ops" id="ur4-CU-fad"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
