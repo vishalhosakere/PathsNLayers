@@ -10,10 +10,11 @@ import Foundation
 //import UIKit
 
 enum sides:Int, Codable {
+    //Changed the left from 4 to 0. while building new working arrow points
+    case left = 0
     case top = 1
     case right = 2
     case bottom = 3
-    case left = 4
 }
 
 class entireData: Codable {

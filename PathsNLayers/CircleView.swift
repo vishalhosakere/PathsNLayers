@@ -10,18 +10,22 @@ import UIKit
 
 class CircleView : UIView , UIGestureRecognizerDelegate {
     
-    var outGoingLine : CAShapeLayer?
-    var inComingLine : CAShapeLayer?
+    var outGoingLine : ArrowShape?
+    var inComingLine : ArrowShape?
     var inComingCircle : CircleView?
     var outGoingCircle : CircleView?
     var mainPoint : CGPoint?
-    var hasConnection : Bool
+    var hasConnection : Bool{
+        didSet{
+            self.isHidden = self.hasConnection
+        }
+    }
     var myView : processView?
+    var myLayer : ArrowShape?
     var isDelete : Bool?
-    let myLayer = CALayer()
+    let imageLayer = CALayer()
     var side: Int?
     static var uniqueID = 0
-
 
     
     convenience init(frame: CGRect, isDelete: Bool) {
@@ -29,8 +33,17 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
         self.isDelete = isDelete
         if self.isDelete!{
             let myImage = UIImage(named: "delete")?.cgImage
-            myLayer.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-            myLayer.contents = myImage
+            imageLayer.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+            imageLayer.contents = myImage
+        }
+    }
+    
+    convenience init(frame: CGRect, isExpand: Bool) {
+        self.init(frame: frame)
+        if isExpand{
+            let myImage = UIImage(named: "expand")?.cgImage
+            imageLayer.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+            imageLayer.contents = myImage
         }
     }
     
@@ -48,9 +61,9 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
 //        plus.contentMode = .sca
 //        self.addSubview(plus)
         let myImage = UIImage(named: "plus")?.cgImage
-        myLayer.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-        myLayer.contents = myImage
-        self.layer.addSublayer(myLayer)
+        imageLayer.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+        imageLayer.contents = myImage
+        self.layer.addSublayer(imageLayer)
         self.isUserInteractionEnabled = true
     }
     
@@ -58,32 +71,16 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func lineTo2(circle: CircleView) -> CAShapeLayer {
-        let path = UIBezierPath()
-//        path.move(to: self.center)
-//        path.addLine(to: circle.center)
-        path.move(to: (self.mainPoint)!)
-        path.addLine(to: (circle.mainPoint)!)
-        
-        let line = CAShapeLayer()
-        line.path = path.cgPath
-        line.lineWidth = 2
-        line.strokeColor = UIColor.black.cgColor
-
-        circle.inComingLine = line
-        outGoingLine = line
-        outGoingCircle = circle
-        circle.inComingCircle = self
-        return line
-    }
     
     
     
     
-    func lineTo(circle: CircleView) -> CAShapeLayer {
-//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
-        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
-        let shapeLayer = CAShapeLayer()
+    func lineTo1(circle: CircleView) -> ArrowShape {
+        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
+//        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+        let shapeLayer = ArrowShape(withPoint: self.center, inputCircle: self, outputCircle: circle)
+        let arrow2 = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 2, headWidth: 10, headLength: 5)
+        shapeLayer.alternatePath = arrow2.cgPath
         shapeLayer.path = arrow.cgPath
         circle.inComingLine = shapeLayer
         outGoingLine = shapeLayer
@@ -93,15 +90,89 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
         self.isHidden = true
         circle.hasConnection = true
         circle.isHidden = true
+        
         return shapeLayer
+        
+    }
+    
+    func lineTo2(circle: CircleView) -> ArrowShape {
+//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
+        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+        let shapeLayer = ArrowShape(withPoint: self.center, inputCircle: self, outputCircle: circle)
+//        let arrow2 = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 2, headWidth: 10, headLength: 5)
+        shapeLayer.alternatePath = arrow.cgPath
+        shapeLayer.path = arrow.cgPath
+        circle.inComingLine = shapeLayer
+        outGoingLine = shapeLayer
+        outGoingCircle = circle
+        circle.inComingCircle = self
+        self.hasConnection = true
+        self.isHidden = true
+        circle.hasConnection = true
+        circle.isHidden = true
+        
+        return shapeLayer
+        
+    }
+    
+    
+    func lineTo(circle: CircleView) -> ArrowShape {
+        let points = ArrowShape.getArrowpoints(inSide: self.side ?? 10, outSide: circle.side ?? 10, from: self, to: circle)
+//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
+        //        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+        
+        let arrow = UIBezierPath.arrow3(points: points,tailWidth: 10, headWidth: 10, headLength: 30)
+        
+        let shapeLayer = ArrowShape(withPoint: self.center, inputCircle: self, outputCircle: circle)
+        let arrow2 = UIBezierPath.arrow3(points: points,tailWidth: 1, headWidth: 3, headLength: 5)
+        shapeLayer.alternatePath = arrow2.cgPath
+        shapeLayer.path = arrow.cgPath
+        circle.inComingLine = shapeLayer
+        outGoingLine = shapeLayer
+        outGoingCircle = circle
+        circle.inComingCircle = self
+        self.hasConnection = true
+//        self.isHidden = true
+        circle.hasConnection = true
+//        circle.isHidden = true
+        
+        return shapeLayer
+        
     }
     
     
     
-    func getPath(circle: CircleView) -> CGPath {
-//        let arrow = UIBezierPath.arrow(from: (self.mainPoint)!, to: (circle.mainPoint)!,tailWidth: 20, headWidth: 40, headLength: 20)
-        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+    func getPath(circle: CircleView, getAlternate: Bool = false) -> CGPath {
+        let points = ArrowShape.getArrowpoints(inSide: self.side ?? 10, outSide: circle.side ?? 10, from: self, to: circle)
+        if getAlternate {
+            print("getting main path")
+            let arrow = UIBezierPath.arrow3(points: points,tailWidth: 1, headWidth: 3, headLength: 5)
+            outGoingLine?.updateViews(withPoint: outGoingLine?.point ?? self.mainPoint!)
+            //        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+            return arrow.cgPath
+        }
+        print("getting alt path")
+        let arrow = UIBezierPath.arrow3(points: points,tailWidth: 10, headWidth: 10, headLength: 30)
+        outGoingLine?.updateViews(withPoint: outGoingLine?.point ?? self.mainPoint!)
         return arrow.cgPath
+        
+    }
+    
+    
+    
+    func getPath1(circle: CircleView, getAlternate: Bool = false) -> CGPath {
+        if getAlternate {
+            print("getting main path")
+//            let arrow = UIBezierPath.arrow3(points: points,tailWidth: 2, headWidth: 10, headLength: 5)
+            outGoingLine?.updateViews(withPoint: outGoingLine?.point ?? self.mainPoint!)
+            let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+            return arrow.cgPath
+        }
+        print("getting alt path")
+        let arrow = UIBezierPath.arrow2(from: (self.mainPoint)!, to: (circle.mainPoint)!, circle1: self, circle2: circle)
+        outGoingLine?.updateViews(withPoint: outGoingLine?.point ?? self.mainPoint!)
+        return arrow.cgPath
+        
     }
     
     
@@ -111,7 +182,5 @@ class CircleView : UIView , UIGestureRecognizerDelegate {
         return uniqueID
     }
 }
-
-
 
 

@@ -16,11 +16,12 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
     
     var scrollView: UIScrollView?
     var subView: UIView?
+    var gridView: GridView!
     //keep track of all views that contain a diagram(BezierPath)
     var views = [processView]()
     var viewsAndData = [processView: uiViewData]()
     var idAndView = [Int: processView]()
-    
+    var arrows = [ArrowShape]()
     //variables that falicitate drawing arrows between two pluses(circle view with plus image inside)
     var firstCircle : CircleView? = nil
     var secondCircle : CircleView? = nil
@@ -30,6 +31,9 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
+        
+        
         self.restorationIdentifier = "mainController"
         
         self.scrollView = UIScrollView(frame: CGRect(x: 0, y: 100, width: self.view.frame.width, height: self.view.frame.height))
@@ -38,10 +42,10 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
         
         self.scrollView?.delegate = self
         
-        self.scrollView!.contentSize = CGSize(width: self.view.frame.width * 3, height: self.view.frame.height * 3)
-        self.subView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width * 3, height: self.view.frame.height * 3))
+        self.scrollView!.contentSize = CGSize(width: self.view.frame.width.rounded(to: 50) * 3, height: self.view.frame.height.rounded(to: 50) * 3)
+        self.subView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width.rounded(to: 50) * 3, height: self.view.frame.height.rounded(to: 50) * 3))
         self.scrollView!.addSubview(subView!)
-        self.subView!.backgroundColor = UIColor.yellow
+        self.subView!.backgroundColor = UIColor.white
         self.scrollView?.canCancelContentTouches = false
         //set appropriate zoom scale for the scroll view
         self.scrollView!.maximumZoomScale = 6.0
@@ -89,20 +93,38 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
         
         
         //tap gesture for anything other than demoviews
-        let mytapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(myTapAction))
-        mytapGestureRecognizer.numberOfTapsRequired = 1
-        mytapGestureRecognizer.delegate = self
-        subView!.addGestureRecognizer(mytapGestureRecognizer)
+        let singleTapGesture = UITapGestureRecognizer(target: self, action: #selector(singleTap))
+        singleTapGesture.numberOfTapsRequired = 1
+        singleTapGesture.delegate = self
+        subView!.addGestureRecognizer(singleTapGesture)
+        
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(doubleTap))
+        doubleTapGesture.numberOfTapsRequired = 2
+        doubleTapGesture.delegate = self
+        subView!.addGestureRecognizer(doubleTapGesture)
+        
+        singleTapGesture.require(toFail: doubleTapGesture)
         
         
+        
+        
+        gridView = GridView(frame : subView!.frame)
+        gridView.backgroundColor = UIColor.clear
+        gridView.isUserInteractionEnabled = false
+        
+        
+        subView!.addSubview(gridView)
         //add shapes required
        // add_a_shape(shape: "Triangle",x:100 ,y:100)
-        add_a_shape(shape: "Rectangle",x:450, y:100, width: 160, height: 160, withID: getUniqueID(), withText: "Insert text")
-        add_a_shape(shape: "Diamond",x:100, y: 400, width: 160, height: 160, withID: getUniqueID(), withText: "Insert text")
-        add_a_shape(shape: "Rounded Rectangle", x:450, y:400, width: 160, height: 160, withID: getUniqueID(), withText: "Insert text")
-        add_a_shape(shape: "Database", x:100, y:700, width: 160, height: 160, withID: getUniqueID(), withText: "Insert text")
-        add_a_shape(shape: "Harddisk", x:450, y:700, width: 160, height: 160, withID: getUniqueID(), withText: "Insert text")
+        add_a_shape(shape: "Rectangle",x:100, y:100, width: 100, height: 100, withID: getUniqueID(), withText: "")
+        add_a_shape(shape: "Diamond",x:100, y: 400, width: 100, height: 100, withID: getUniqueID(), withText: "")
+        add_a_shape(shape: "Rounded Rectangle", x:450, y:400, width: 100, height: 100, withID: getUniqueID(), withText: "")
+        add_a_shape(shape: "Database", x:100, y:700, width: 100, height: 100, withID: getUniqueID(), withText: "")
+        add_a_shape(shape: "Harddisk", x:450, y:700, width: 100, height: 100, withID: getUniqueID(), withText: "")
         disable_all()
+        
+        
+        
         
     }
     
@@ -138,6 +160,7 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
         
         
         demoView.isUserInteractionEnabled = true
+        
         subView!.addSubview(demoView)
         
         //create the pluses around the view. need to do it here inorder to add it to its superview. which will only be assigned after addSubview above
@@ -164,6 +187,10 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
     func disable_all() {
         for view in views {
             view.disable_resize()
+        }
+        print("number of arrows = \(arrows.count)")
+        for arrow in arrows{
+            arrow.disable_resize()
         }
     }
   
@@ -243,92 +270,101 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
         if firstCircle == nil {
             firstCircle = sender.view as! CircleView?
             firstCircle?.hasConnection = true
-            firstCircle?.isHidden = true
+//            firstCircle?.isHidden = true
         }else{
 //            draw_line(point1: (firstCircle?.center)!, point2: (sender.view?.center)!)
             secondCircle = sender.view as! CircleView?
-            subView!.layer.addSublayer((firstCircle?.lineTo(circle: secondCircle!))! )
+            let arrowShape = (firstCircle?.lineTo(circle: secondCircle!))!
+            arrowShape.setSubView(self.subView!)
+            arrowShape.createCircles()
+            arrows.append(arrowShape)
+            arrowShape.circle?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(circlegesture)))
+            arrowShape.delete?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(deletegesture)))
+
+            subView!.layer.addSublayer(arrowShape)
             addLineData(from: firstCircle!, to: secondCircle!)
             secondCircle?.hasConnection = true
-            secondCircle?.isHidden = true
+//            secondCircle?.isHidden = true
             firstCircle = nil
             secondCircle = nil
         }
     }
     
     @objc func deletegesture(_ sender: UITapGestureRecognizer){
+        
         print("print delete")
         let del = sender.view as! CircleView?
-        for circle in (del?.myView?.circles)!{
-//            circle.inComingLine
-//            circle.outGoingLine
-            circle.removeFromSuperview()
+        if del?.myView != nil{
+            for circle in (del?.myView?.circles)!{
+    //            circle.inComingLine
+    //            circle.outGoingLine
+                circle.removeFromSuperview()
+                
+            }
+            views.removeObjFromArray(object: del?.myView)
+            let data = viewsAndData[(del?.myView)!]
+            idAndView.removeValue(forKey: data!.id)
+            viewsAndData.removeValue(forKey: (del?.myView)!)
+            
+            del?.myView?.removeFromSuperview()
+            del?.removeFromSuperview()
+            
+            print(idAndView.count)
+            print(viewsAndData.count)
+            print(views.count)
         }
-        del?.myView?.removeFromSuperview()
-        del?.removeFromSuperview()
+        if del?.myLayer != nil{
+            del?.myLayer?.inputCircle.hasConnection = false
+            del?.myLayer?.outputCircle.hasConnection = false
+            del?.myLayer?.circle?.removeFromSuperview()
+            del?.myLayer?.expand?.removeFromSuperview()
+            del?.myLayer?.removeFromSuperlayer()
+            del?.removeFromSuperview()
+        }
+
         
     }
     
     
     //gesture to recognize tap in subView which contains all the diagrams
-    @objc func myTapAction(_ sender: UITapGestureRecognizer) {
-        if sender.view is CircleView {
-            print("touched a circle")
+    @objc func singleTap(_ sender: UITapGestureRecognizer) {
+        if firstCircle == nil{
+            disable_all()
         }
-        else{
-            
-            if firstCircle == nil{
-                for view in views{
-                    view.disable_resize()
-                }
-            }
-            
-            firstCircle?.hasConnection = false
-            firstCircle?.isHidden = false
-            firstCircle = nil
-            print("touches in viewcontroller")
-            let location = sender.location(in: sender.view)
-            let point = subView!.convert(location, from: nil)
-            print("\(point)")
-            let found = subView!.layer.hitTest(point)
-            print("\(found?.name)")
-            if let layer = subView!.layer.hitTest(point) as? CAShapeLayer {
-                print("touched a shape/arrow")
-            }
-            
-            if let sublayers = subView!.layer.sublayers {
-                for layer in sublayers {
-                    if let temp = layer as? CAShapeLayer{
-                        
-                        if (temp.path?.contains(point))!{
-                            //	temp.removeFromSuperlayer()
-                            print("arrow touched")
+        
+        firstCircle?.hasConnection = false
+        firstCircle?.isHidden = false
+        firstCircle = nil
+        print("touches in viewcontroller")
+
+    }
+    
+    @objc func doubleTap(_ sender: UITapGestureRecognizer) {
+        let tapLocation:CGPoint = sender.location(in: subView)
+        if let sublayers = subView!.layer.sublayers {
+            for layer in sublayers {
+                if let temp = layer as? ArrowShape{
+                    if (temp.path?.contains(tapLocation))!{
+                        print("touched arrow")
+                        temp.updateViews(withPoint: tapLocation)
+                        if temp.viewsHidden{
+                            temp.enable_resize()
+                        }
+                        else{
+                            temp.disable_resize()
                         }
                     }
                 }
             }
         }
-//        var touch = sender.location(in: scrollView)
-//        var done = false
-//        for view in views{
-//            if view.bounds.contains(touch){
-//                done = true
-//            }
-//        }
-//        if !done{
-//            for view in views{
-//                view.disable_resize()
-//            }
-//        }
-//        draw_line()
-        
-        
     }
+    
+
 
     @objc func take_screenshot(_ sender: UITapGestureRecognizer) {
         UIGraphicsBeginImageContext(self.view.frame.size)
         view.layer.render(in: UIGraphicsGetCurrentContext()!)
-        var image = UIGraphicsGetImageFromCurrentImageContext()
+        let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         UIImageWriteToSavedPhotosAlbum(image!, nil, nil, nil)
         
@@ -338,6 +374,22 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
  
     
     @objc func save_action(_ sender: UITapGestureRecognizer) {
+        let alert = UIAlertController(title: "Enter the Filename", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        alert.addTextField(configurationHandler: { textField in
+            textField.placeholder = "Input your file name here..."
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
+            
+            if let name = alert.textFields?.first?.text {
+                print("File name: \(name)")
+            }
+        }))
+        
+        self.present(alert, animated: true)
+        
         let jsonEncoder = JSONEncoder()
         //jsonEncoder.outputFormatting = .prettyPrinted
         allData.allViews.removeAll()
@@ -368,6 +420,7 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
             view.removeFromSuperview()
         }
         subView!.layer.sublayers = nil
+        subView?.addSubview(gridView)
         
         for viewData in allData.allViews{
             add_a_shape(shape: viewData.shape, x: CGFloat(viewData.x), y: CGFloat(viewData.y
@@ -492,4 +545,39 @@ class ViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognize
     
 }
 
-		
+
+extension FloatingPoint {
+    func rounded(to value: Self, roundingRule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self{
+        return (self / value).rounded(roundingRule) * value
+        
+    }
+}
+
+extension CGPoint {
+    func rounded(to value: CGFloat, roundingRule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGPoint{
+        return CGPoint(x: CGFloat((self.x / value).rounded(.toNearestOrAwayFromZero) * value), y: CGFloat((self.y / value).rounded(.toNearestOrAwayFromZero) * value))
+    }
+}
+
+extension CGRect {
+    func rounded(to value: CGFloat, roundingRule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect{
+        return CGRect(x: self.origin.x, y: self.origin.y, width: CGFloat((self.width / value).rounded(.toNearestOrAwayFromZero) * value), height: CGFloat((self.height / value).rounded(.toNearestOrAwayFromZero) * value))
+    }
+}
+
+extension Array{
+    mutating func removeObjFromArray<U: Equatable>(object: U){
+        var index: Int?
+        for (idx, objectToCompare) in self.enumerated(){
+            if let to = objectToCompare as? U{
+                if object == to{
+                    index = idx
+                }
+            }
+        }
+        
+        if index != nil {
+            self.remove(at: index!)
+        }
+    }
+}

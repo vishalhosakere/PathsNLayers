@@ -30,6 +30,7 @@ class processView: UIView , UIGestureRecognizerDelegate {
     
     
     var path: UIBezierPath!
+    var main_layer: CAShapeLayer!
     
     convenience init(frame: CGRect, ofShape: String, withID id: Int, withText text: String) {
         self.init(frame: frame)
@@ -51,7 +52,10 @@ class processView: UIView , UIGestureRecognizerDelegate {
         gestureRecognizer.delegate = self
         self.addGestureRecognizer(gestureRecognizer)
         self.backgroundColor = UIColor.clear
-
+        
+        //allign the frame to the grid
+        let new_frame = CGRect(x: self.frame.origin.x.rounded(to: 50)-10, y: self.frame.origin.y.rounded(to: 50)-10, width: self.frame.width.rounded(to: 50)+20, height :self.frame.height.rounded(to: 50)+20)
+        self.frame = new_frame
 
         //animated border
         let bounds = self.bounds
@@ -68,6 +72,7 @@ class processView: UIView , UIGestureRecognizerDelegate {
         animation.repeatCount = .infinity
         borderlayer.add(animation, forKey: "line")
         
+
 
         
         //createTextLayer()
@@ -201,10 +206,10 @@ class processView: UIView , UIGestureRecognizerDelegate {
     
     
     func createCircles(){
-        let cir1 = CircleView(frame: CGRect(x: self.center.x - (self.bounds.size.width / 2) - 50 , y: self.center.y - 25, width: 50, height: 50), isSide: sides.left.rawValue)//left
-        let cir2 = CircleView(frame: CGRect(x: self.center.x - 25 , y: self.center.y - (self.bounds.size.height / 2) - 50, width: 50, height: 50), isSide: sides.top.rawValue)
-        let cir3 = CircleView(frame: CGRect(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y - 25, width: 50, height: 50), isSide: sides.right.rawValue)
-        let cir4 = CircleView(frame: CGRect(x: self.center.x - 25 , y: self.center.y + (self.bounds.size.height / 2) , width: 50, height: 50), isSide: sides.bottom.rawValue)
+        let cir1 = CircleView(frame: CGRect(x: self.center.x - (self.bounds.size.width / 2) - 40 , y: self.center.y - 20, width: 40, height: 40), isSide: sides.left.rawValue)//left
+        let cir2 = CircleView(frame: CGRect(x: self.center.x - 20 , y: self.center.y - (self.bounds.size.height / 2) - 40, width: 40, height: 40), isSide: sides.top.rawValue)
+        let cir3 = CircleView(frame: CGRect(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y - 20, width: 40, height: 40), isSide: sides.right.rawValue)
+        let cir4 = CircleView(frame: CGRect(x: self.center.x - 20 , y: self.center.y + (self.bounds.size.height / 2) , width: 40, height: 40), isSide: sides.bottom.rawValue)
 
         cir1.mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
         cir2.mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
@@ -226,7 +231,7 @@ class processView: UIView , UIGestureRecognizerDelegate {
         superview?.addSubview(cir3)
         superview?.addSubview(cir4)
 
-        let del = CircleView(frame: CGRect(x: self.center.x - (self.bounds.size.width / 2) - 50 , y: self.center.y - (self.bounds.size.height / 2) - 50, width: 50, height: 50), isDelete: true)
+        let del = CircleView(frame: CGRect(x: self.center.x - (self.bounds.size.width / 2) - 40 , y: self.center.y - (self.bounds.size.height / 2) - 40, width: 40, height: 40), isDelete: true)
         del.myView = self
         del.backgroundColor = .clear
         self.delete = del
@@ -234,13 +239,77 @@ class processView: UIView , UIGestureRecognizerDelegate {
         
     }
     
+    func update_circle_views(){
+        circles[0].center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 20 , y: self.center.y)
+        circles[1].center = CGPoint(x: self.center.x, y: self.center.y - (self.bounds.size.height / 2) - 20)
+        circles[2].center = CGPoint(x: self.center.x + (self.bounds.size.width / 2) + 20 , y: self.center.y)
+        circles[3].center = CGPoint(x: self.center.x, y: self.center.y + (self.bounds.size.height / 2) + 20)
+        delete?.center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 20 , y: self.center.y - (self.bounds.size.height / 2) - 20)
+        
+        
+        
+        circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
+        circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
+        circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
+        circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
+        
+        for circle in circles{
+            if let outGoingCircle = circle.outGoingCircle, let line = circle.outGoingLine, let path = circle.outGoingLine?.path {
+                //                let newPath = UIBezierPath(cgPath: path)
+                //                newPath.removeAllPoints()
+                //                newPath.move(to: circle.mainPoint!)
+                //                newPath.addLine(to: outGoingCircle.mainPoint!)
+                //                line.path = newPath.cgPath
+//                if !line.setAlternatePath{
+                    line.path = circle.getPath(circle: circle.outGoingCircle!)
+                    line.thinArrow.path = circle.getPath(circle: circle.outGoingCircle!, getAlternate: true)
+//                }else{
+//                    line.alternatePath = circle.getPath(circle: circle.outGoingCircle!)
+//                    line.path = circle.getPath(circle: circle.outGoingCircle!, getAlternate: true)
+//                }
+            }
+            
+            if let inComingCircle = circle.inComingCircle, let line = circle.inComingLine, let path = circle.inComingLine?.path {
+                //                let newPath = UIBezierPath(cgPath: path)
+                //                newPath.removeAllPoints()
+                //                newPath.move(to: inComingCircle.mainPoint!)
+                //                newPath.addLine(to: circle.mainPoint!)
+                //                line.path = newPath.cgPath
+//                if !line.setAlternatePath{
+                    line.path = circle.inComingCircle!.getPath(circle: circle)
+                    line.thinArrow.path = circle.inComingCircle!.getPath(circle: circle, getAlternate: true)
+//                }else{
+//                    line.alternatePath = circle.inComingCircle!.getPath(circle: circle)
+//                    line.path = circle.inComingCircle!.getPath(circle: circle, getAlternate: true)
+//                }
+            }
+        }
+    }
+    
+    func update_main_layer(){
+        if self.shape == "Triangle" {
+            self.createTriangle()
+        }else if self.shape == "Diamond"{
+            self.createDiamond()
+        }else if self.shape == "Rounded Rectangle"{
+            self.createRoundedRectangle()
+        }else if self.shape == "Rectangle"{
+            self.createRectangle()
+        }else if self.shape == "Database"{
+            self.createDatabase()
+        }else if self.shape == "Harddisk"{
+            self.createHarddisk()
+        }
+        
+        main_layer.path = path.cgPath
+    }
     
     
     
     // Only override draw() if you perform custom drawing.
     // An empty implementation adversely affects performance during animation.
     override func draw(_ rect: CGRect) {
-        
+        print("drawing here")
         // Drawing code
         if self.shape == "Triangle" {
             self.createTriangle()
@@ -255,12 +324,37 @@ class processView: UIView , UIGestureRecognizerDelegate {
         }else if self.shape == "Harddisk"{
             self.createHarddisk()
         }
-        UIColor.clear.setFill()
-        path.fill()
-        // Specify a border (stroke) color.
-        UIColor.black.setStroke()
-        path.stroke()
         
+        main_layer = CAShapeLayer()
+        main_layer.path = path.cgPath
+        main_layer.lineWidth = 3.0
+        main_layer.strokeColor = UIColor.black.cgColor
+        main_layer.fillColor = UIColor.clear.cgColor
+        self.layer.addSublayer(main_layer)
+//        if let context = UIGraphicsGetCurrentContext(){
+//
+//            context.setLineWidth(3.0)
+//            context.setStrokeColor(UIColor.black.cgColor)
+////            context.setFillColor(UIColor.orange.cgColor)
+////            context.addPath(path.cgPath)
+//            context.move(to: CGPoint(x: 10.0, y: 10.0))
+//            context.addLine(to: CGPoint(x: 10.0, y: self.frame.size.height - 10))
+//            context.addLine(to: CGPoint(x: self.frame.size.width - 10, y: self.frame.size.height - 10))
+//            context.addLine(to: CGPoint(x: self.frame.size.width - 10, y: 10.0))
+//            context.closePath()
+//            context.strokePath()
+////            UIColor.black.setStroke()
+////            path.stroke()
+//        }
+        
+        
+//            else{
+//            UIColor.clear.setFill()
+//            path.fill()
+//            // Specify a border (stroke) color.
+//            UIColor.black.setStroke()
+//            path.stroke()
+//        }
 //        let layer = CAShapeLayer()
 //        layer.path = self.path.cgPath
 //        layer.lineWidth = 4.0
@@ -310,6 +404,18 @@ class processView: UIView , UIGestureRecognizerDelegate {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        print("touched ended")
+//        let midPoint = self.center.rounded(to: 50)
+//
+//        self.center = midPoint
+        let new_frame = CGRect(x: self.frame.origin.x.rounded(to: 50)-10, y: self.frame.origin.y.rounded(to: 50)-10, width: self.frame.width.rounded(to: 50)+20, height :self.frame.height.rounded(to: 50)+20)
+        self.frame = new_frame
+        
+        self.subviews[0].center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
+        self.borderlayer.path =  UIBezierPath(roundedRect: self.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 20, height: 20)).cgPath
+        update_main_layer()
+        update_circle_views()
+
 //        let scroll = self.superview?.superview as! UIScrollView
 //        scroll.isScrollEnabled = true
     }
@@ -320,6 +426,7 @@ class processView: UIView , UIGestureRecognizerDelegate {
     
     //handle the resize, pan and move all the view appropriately
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        print("touches moved")
         let touchPoint =  touches.first?.location(in: self)
         let previous = touches.first?.previousLocation(in: self)
         
@@ -334,37 +441,7 @@ class processView: UIView , UIGestureRecognizerDelegate {
             self.center = CGPoint(x: self.center.x + touchPoint!.x - touchStart.x, y: self.center.y + touchPoint!.y - touchStart.y)
             self.subviews[0].center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
             self.borderlayer.path =  UIBezierPath(roundedRect: self.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 20, height: 20)).cgPath
-            circles[0].center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - 25 + 25)
-            circles[1].center = CGPoint(x: self.center.x - 25 + 25, y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
-            circles[2].center = CGPoint(x: self.center.x + (self.bounds.size.width / 2) + 25 , y: self.center.y - 25 + 25)
-            circles[3].center = CGPoint(x: self.center.x - 25 + 25 , y: self.center.y + (self.bounds.size.height / 2) + 25)
-            delete?.center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
-
-            
-            circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
-            circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
-            circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
-            circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
-
-            for circle in circles{
-                if let outGoingCircle = circle.outGoingCircle, let line = circle.outGoingLine, let path = circle.outGoingLine?.path {
-//                    let newPath = UIBezierPath(cgPath: path)
-//                    newPath.removeAllPoints()
-//                    newPath.move(to: circle.mainPoint!)
-//                    newPath.addLine(to: outGoingCircle.mainPoint!)
-//                    line.path = newPath.cgPath
-                    line.path = circle.getPath(circle: circle.outGoingCircle!)
-                }
-                
-                if let inComingCircle = circle.inComingCircle, let line = circle.inComingLine, let path = circle.inComingLine?.path {
-//                    let newPath = UIBezierPath(cgPath: path)
-//                    newPath.removeAllPoints()
-//                    newPath.move(to: inComingCircle.mainPoint!)
-//                    newPath.addLine(to: circle.mainPoint!)
-//                    line.path = newPath.cgPath
-                    line.path = circle.inComingCircle!.getPath(circle: circle)
-                }
-            }
+            update_circle_views()
 //            let scroll = self.superview?.superview as! UIScrollView
 //            scroll.isScrollEnabled = true
             return
@@ -386,42 +463,12 @@ class processView: UIView , UIGestureRecognizerDelegate {
             self.center = CGPoint(x: self.center.x + touchPoint!.x - touchStart.x, y: self.center.y + touchPoint!.y - touchStart.y)
 //            self.center = touches.first!.location(in: self.superview)
         }
+        update_main_layer()
         
         self.subviews[0].center = CGPoint(x: self.bounds.size.width / 2, y: self.bounds.size.height / 2)
         self.borderlayer.path =  UIBezierPath(roundedRect: self.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 20, height: 20)).cgPath
-        circles[0].center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - 25 + 25)
-        circles[1].center = CGPoint(x: self.center.x - 25 + 25, y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
-        circles[2].center = CGPoint(x: self.center.x + (self.bounds.size.width / 2) + 25 , y: self.center.y - 25 + 25)
-        circles[3].center = CGPoint(x: self.center.x - 25 + 25 , y: self.center.y + (self.bounds.size.height / 2) + 25)
-        delete?.center = CGPoint(x: self.center.x - (self.bounds.size.width / 2) - 50 + 25 , y: self.center.y - (self.bounds.size.height / 2) - 50 + 25)
+        update_circle_views()
 
-
-
-        circles[0].mainPoint = CGPoint(x: self.center.x - (self.bounds.size.width / 2) , y: self.center.y)
-        circles[1].mainPoint = CGPoint(x: self.center.x  , y: self.center.y - (self.bounds.size.height / 2))
-        circles[2].mainPoint = CGPoint(x: self.center.x + (self.bounds.size.width / 2) , y: self.center.y)
-        circles[3].mainPoint = CGPoint(x: self.center.x , y: self.center.y + (self.bounds.size.height / 2))
-
-        for circle in circles{
-            if let outGoingCircle = circle.outGoingCircle, let line = circle.outGoingLine, let path = circle.outGoingLine?.path {
-//                let newPath = UIBezierPath(cgPath: path)
-//                newPath.removeAllPoints()
-//                newPath.move(to: circle.mainPoint!)
-//                newPath.addLine(to: outGoingCircle.mainPoint!)
-//                line.path = newPath.cgPath		
-                line.path = circle.getPath(circle: circle.outGoingCircle!)
-                
-            }
-            
-            if let inComingCircle = circle.inComingCircle, let line = circle.inComingLine, let path = circle.inComingLine?.path {
-//                let newPath = UIBezierPath(cgPath: path)
-//                newPath.removeAllPoints()
-//                newPath.move(to: inComingCircle.mainPoint!)
-//                newPath.addLine(to: circle.mainPoint!)
-//                line.path = newPath.cgPath
-                line.path = circle.inComingCircle!.getPath(circle: circle)
-            }
-        }
 //        let scroll = self.superview?.superview as! UIScrollView
 //        scroll.isScrollEnabled = true
     }
